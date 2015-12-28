@@ -2,7 +2,7 @@
 -- Design Name : adclb
 -- File Name   : adclb.vhd
 -- Function    : 2wire i/f for ADC
--- Author      : M Eller
+-- Author      : Michael Eller
 -------------------------------------------------------
 -- Standard libraries
 library ieee;
