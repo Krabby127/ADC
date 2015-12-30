@@ -1,0 +1,1 @@
+xst -intstyle ise -ifn "/home/laura/ADC/ADC/tb.xst" -ofn "/home/laura/ADC/ADC/tb.syr" 

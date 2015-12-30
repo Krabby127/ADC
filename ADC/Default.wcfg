@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/laura/ADC/ADC/tb2_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_textio" />
+            <top_module name="std_logic_unsigned" />
+            <top_module name="tb2" />
+            <top_module name="textio" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="13" />
+   <wvobject fp_name="/tb2/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/reset" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/sdai" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sdai</obj_property>
+      <obj_property name="ObjectShortName">sdai</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/sdao" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sdao</obj_property>
+      <obj_property name="ObjectShortName">sdao</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/sda_oe" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sda_oe</obj_property>
+      <obj_property name="ObjectShortName">sda_oe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/diff_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">diff_i</obj_property>
+      <obj_property name="ObjectShortName">diff_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/upd" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">upd</obj_property>
+      <obj_property name="ObjectShortName">upd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/scl" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">scl</obj_property>
+      <obj_property name="ObjectShortName">scl</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/start_bit" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">start_bit</obj_property>
+      <obj_property name="ObjectShortName">start_bit</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/max_seen" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">max_seen[7:0]</obj_property>
+      <obj_property name="ObjectShortName">max_seen[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/min_seen" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">min_seen[7:0]</obj_property>
+      <obj_property name="ObjectShortName">min_seen[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/val" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">val[7:0]</obj_property>
+      <obj_property name="ObjectShortName">val[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/datai" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">datai[7:0]</obj_property>
+      <obj_property name="ObjectShortName">datai[7:0]</obj_property>
+   </wvobject>
+</wave_config>

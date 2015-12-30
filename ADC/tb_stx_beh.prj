@@ -1,0 +1,2 @@
+vhdl isim_temp "../adclb/adclb.vhd"
+vhdl isim_temp "../adclb/tb.vhd"

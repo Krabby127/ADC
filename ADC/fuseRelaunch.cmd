@@ -1,0 +1,1 @@
+-intstyle "ise" -incremental -o "/home/laura/ADC/ADC/tb2_isim_beh.exe" -prj "/home/laura/ADC/ADC/tb2_beh.prj" "work.tb2" 

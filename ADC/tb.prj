@@ -1,0 +1,2 @@
+vhdl work "../adclb/adclb.vhd"
+vhdl work "../adclb/tb.vhd"
