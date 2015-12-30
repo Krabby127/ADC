@@ -35,7 +35,8 @@ signal scl : std_logic;
 signal sdao : std_logic;
 signal sda_oe : std_logic;
 signal diff_i : std_logic;
-signal diff : std_logic_vector(7 downto 0);
+signal diff: std_logic_vector(7 downto 0);
+
 --signal val : std_logic_vector(7 downto 0);
 
 begin
