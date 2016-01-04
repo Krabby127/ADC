@@ -17,12 +17,12 @@ entity adclb is
              scl         :out std_logic; -- I2C clock
              sdai        :in  std_logic; -- data in
              sdao        :out std_logic; -- data out
-             sda_oe      :out std_logic; -- data out enable
+             sda_oe      :out std_logic; -- master control of sda line
              diff_flag   :out std_logic; -- whether the threshold has been met
              max         :out std_logic_vector (7 downto 0); -- max value read from ADC
-             min         :out std_logic_vector (7 downto 0) -- min value read from ADC
---           dataout     :out std_logic_vector (7 downto 0) -- data sent back to master
-);
+             min         :out std_logic_vector (7 downto 0); -- min value read from ADC
+             value       :inout std_logic_vector (7 downto 0) -- data sent back to master
+         );
 end entity;
 
 
@@ -46,13 +46,14 @@ architecture rtl of adclb is
     signal count_end :std_logic; -- state counter
     signal sdao_i    :std_logic; -- internal data out
     signal upd_i     :std_logic; -- internal uptime counter finish flag
-
 begin
 
     sdao<=sdao_i;
     max<=max_seen;
-	 min<=min_seen;
+    min<=min_seen;
     diff_flag<=diff_i;
+    value<=val;
+
 
     count_proc: process (clk, reset)
     begin
@@ -60,16 +61,11 @@ begin
             count <= "0000000";
             count_end<='0';
             count_half<='0';
---            bit_cnt <= "0000000";
+            bit_cnt <= "0000000";
             init_cnt <= "000";
             sda_oe<='0'; -- disable data output
---            max_seen<="00000000";
---            min_seen<="11111111";
---				diff<="000000000";
-				diff_i<='0';
---				val<="00000000";
-        -- Merely maintaining a large 7 bit counter
-        -- Counting to 127
+                         -- Merely maintaining a large 7 bit counter
+                         -- Counting to 127
         elsif clk'event and clk='1' then
             count <= count+'1';
             if count="0111110" then
@@ -102,9 +98,6 @@ begin
             -- Intended for only d and 9, but doesn't matter for 1 and 5
             if state(1 downto 0)="01" then
                 bit_cnt<="0000000";
---					 diff<="000000000";
---					 max_seen<="00000000";
---					 min_seen<="11111111";
             -- Increment bit_cnt if in stage 3 or b
             elsif state(1 downto 0)="11" and count_end='1' then
                 bit_cnt<=bit_cnt+'1';
@@ -113,10 +106,10 @@ begin
             -- count_half means we're in the middle of a state
             -- good time to transmit data
             if count_half='1' then
-					 if state="1100" and bit_cnt="0010010" then
+                if state="1100" and bit_cnt="0010010" then
                     -- NAK from state 0d12 0hC
                     sdao_i<='1'; --NAK
-                elsif bit_cnt="0010010" then
+                elsif bit_cnt="1011010" then
                     sdao_i<=sdao_i; --NAK
                 elsif state(2 downto 0)="000" then
                     sdao_i<='1'; -- NAK
@@ -130,29 +123,36 @@ begin
                 elsif bit_cnt="0010010" then
                     sdao_i<=sdao_i; -- Remain at previous state
                 elsif state(2 downto 0)="001" then
-                    sdao_i<='0';
+                    sdao_i<='0'; -- NAK
                 else
                     sdao_i<=datao(7); -- Transfer the data
                 end if;
             end if;
 
-
+            -- count_helf marks state change
             if count_half='1' then
                 -- bit_cnt is 8 or 17 or if done with init with bit_cnt at 0x1A 0d26
                 -- after 1 packet or 3 packets in case of init
                 -- just finished address byte
                 if bit_cnt="0001000" or bit_cnt="0010001" or (state(3)='0' and bit_cnt="0011010") then
                     --(state(3)='1' and bit_cnt="011011") then
-                    -- ACK
+                    -- waiting for slave ACK confirming address
                     sda_oe<='0';
-                -- packets 4,5,6,7,8,9,10
-                -- bit_cnt > 8, /= 36, /= 45, /= 54, /= 63, /= 72, /= 81, /= 90
-                -- ony if in active reading/writing
+-- packets 4,5,6,7,8,9,10
+-- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
+-- end of 9-bit packets
+-- ony if in active reading/writing (state b/c)
+--                elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001"  and bit_cnt/="0101101" and bit_cnt/="0110110" and bit_cnt/="0111111" and bit_cnt/="1001000" and bit_cnt/="1010001" then
+--                    -- Corresponding ACK after each of 8 bits
+--                    sda_oe<='0';
+-- bit_cnt marks number of bits that have already been transmitted
+-- when bit_cnt is 8, a full byte has already been processed
                 elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001"  and bit_cnt/="0101101" and bit_cnt/="0110110" and bit_cnt/="0111111" and bit_cnt/="1001000" and bit_cnt/="1010001" then
-                    -- Corresponding ACK after each of 8 bits
+                    -- Allows for slave to drive SDA and ACK
                     sda_oe<='0';
                 else
-                    -- Otherwise, keep high
+                    -- Otherwise, bring control to master
+                    -- Corresponding ACK from master after each of 8 bits read
                     sda_oe<='1';
                 end if;
             end if;
@@ -170,13 +170,7 @@ begin
     state_proc: process (clk, reset)
     begin
         if reset = '1' then
-				diff_i<='0';
-				diff<="000000000"; -- This one seems to be important
-				val<="00000000";
-				max_seen<="00000000";
-				min_seen<="11111111";
-            -- set to state 0
-            state <= (others=>'0');
+            state <= (others=>'0'); -- set to state 0
         elsif clk'event and clk='1' then
             -- count_end occurs when count reaches 127
             -- 2.56 us
@@ -208,19 +202,20 @@ begin
                     -- after reading 27 bits in state c,
                     -- go to state d
                     -- change to reading 27 bits for ADC
-                    if bit_cnt="0011011" then
+                    if bit_cnt="1011010" then
                         state <= "1101";
-                        diff<=('0'&max_seen)-('0'&min_seen);
+                    --                        diff<=('0'&max_seen)-('0'&min_seen);
                     else
                         -- otherwise, go back to reading in state b
                         state <= "1011";
                     end if;
                 elsif state = "1101" then
-                    if diff>"000110000" then -- some arbitrary number right now; padded with 0 for sign:
-                        diff_i<='1';
-                    else
-                        diff_i<='0';
-                    end if;
+                    --                    if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
+                    --                        diff_i<='1';
+                    --                    else
+                    --                        assert diff<="000010000";
+                    --                        diff_i<='0';
+                    --                    end if;
                     -- go from d to 8
                     -- not done reading yet
                     state <= "1000";
@@ -236,19 +231,20 @@ begin
         wait until clk'event and clk='1';
         if state="1011" and count_half='1' then
             -- v Reading the data v
---				val<="00000000";
             datai<=datai(6 downto 0) & sdai;
         -- ^ Reading the data ^
         end if;
         -- before writes, in state 1 or 9
-        if state(2 downto 0)="001" then
-            -- Slave address check
-            datao<="10100010"; --chip address, write
-		  elsif state="0100" and count_half='1' and bit_cnt="0001001" then
-		  data0<="00000100"; -- writing to reg 0
-		  -- maintain consistency with previous code; shouldn't do anything though
-		  -- register is read only
-        elsif state="1100" and count_half='1' and bit_cnt="0010011" then
+--      if state(2 downto 0)="001" then
+--          -- Slave address check
+--          datao<="10100010"; --chip address, write
+--      elsif state="0100" and count_half='1' and bit_cnt="0001001" then
+--          datao<="00000100"; -- writing to reg 0
+--                             -- maintain consistency with previous code; shouldn't do anything though
+--                             -- register is read only
+--      elsif state="0100" and count_half='1' and bit_cnt="0010010" then
+--          datao<="00000000";
+        if state="1100" and count_half='1' and bit_cnt="0010011" then
             -- Slave address check
             datao<="10100011"; -- chip address, read
                                -- read from states b or 3 every count_half
@@ -258,12 +254,8 @@ begin
         end if;
         if reset='1' or clrb='1' then
             upd_cnt <= (others=>'0');
---            diff_i<='0';
---				max_seen<="00000000";
---            min_seen<="11111111";
         elsif state="1000" and count_end='1' and upd_i='0' then
             upd_cnt<=upd_cnt+'1';
---				max_seen<=max_seen;
         end if;
         if upd_cnt="11111111111" and count_end='1' then
             -- upd_cnt maxxed every 1.31072 ms
@@ -275,8 +267,8 @@ begin
         end if;
     end process;
 
-    -- '0'&XXXX forces unsigned math
---    diff<=('0'&max_seen)-('0'&min_seen);
+    -- '0'&#### forces unsigned math
+    --    diff<=('0'&max_seen)-('0'&min_seen);
 
     reg_proc: process
     begin
@@ -286,25 +278,48 @@ begin
         if state="1011" and bit_cnt="0100011" and count_end='1' then
             val(7 downto 4) <= datai(3 downto 0);
         end if;
-		  -- state b, bit_cnt 0d44
+        -- state b, bit_cnt 0d44
         if state="1011" and bit_cnt="0101100" and count_end='1' then
             val(3 downto 0) <= datai(7 downto 4);
         end if;
         if state="1011" and bit_cnt="0110101" and count_end='1' then
-            if val(7)=max_seen(7) or val(6)=max_seen(5) or val(4)=max_seen(4) then
-                max_seen<=val after 10ns;
+            --            if val>max_seen then
+            --                max_seen<=val;
+            --            elsif val<=max_seen then
+            --                max_seen<=max_seen;
+            --            else
+            --                max_seen<="00000000";
+            --            end if;
+            max_seen<="00010000";
+            if (val<min_seen) then
+                min_seen<=val;
+            elsif val>=min_seen then
+                min_seen<=min_seen;
             else
-                max_seen<=max_seen after 10ns;
+                min_seen<="11111111";
             end if;
---            if (val<min_seen) then
---                min_seen<=val after 10ns;
---            else
---                min_seen<=min_seen after 10ns;
---            end if;
+        end if;
+        -- bit_cnt=62 (0x3E)
+        if state="1011" and bit_cnt="0111110" and count_end='1' then
+            diff<=('0'&max_seen)-('0'&min_seen);
+        -- diff<="000001000";
+        else
+            diff<=diff;
+        end if;
+        if state="1011" and bit_cnt="1000111" then
+            if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
+                diff_i<='1';
+            else
+                assert diff<="000010000";
+                diff_i<='0';
+            end if;
         end if;
         if reset='1' or clrb='1' then
-            diff_flag<='0';
---				datai<="00000000";
+            diff_i<='0';
+            diff<="000000000";
+            max_seen<="00000000";
+            min_seen<="11111111";
+            val<="00000000";
         end if;
     end process;
 
