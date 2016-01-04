@@ -15,7 +15,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="13" />
+   <WVObjectSize size="20" />
    <wvobject fp_name="/tb2/clk" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -27,6 +27,10 @@
    <wvobject fp_name="/tb2/sdai" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">sdai</obj_property>
       <obj_property name="ObjectShortName">sdai</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/scl" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">scl</obj_property>
+      <obj_property name="ObjectShortName">scl</obj_property>
    </wvobject>
    <wvobject fp_name="/tb2/sdao" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">sdao</obj_property>
@@ -44,13 +48,42 @@
       <obj_property name="ElementShortName">upd</obj_property>
       <obj_property name="ObjectShortName">upd</obj_property>
    </wvobject>
-   <wvobject fp_name="/tb2/scl" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">scl</obj_property>
-      <obj_property name="ObjectShortName">scl</obj_property>
-   </wvobject>
    <wvobject fp_name="/tb2/start_bit" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">start_bit</obj_property>
       <obj_property name="ObjectShortName">start_bit</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/stop_bit" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">stop_bit</obj_property>
+      <obj_property name="ObjectShortName">stop_bit</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/value" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">value[7:0]</obj_property>
+      <obj_property name="ObjectShortName">value[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/val" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">val[7:0]</obj_property>
+      <obj_property name="ObjectShortName">val[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/diff" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">diff[8:0]</obj_property>
+      <obj_property name="ObjectShortName">diff[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/bit_cnt" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bit_cnt[6:0]</obj_property>
+      <obj_property name="ObjectShortName">bit_cnt[6:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/state" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">state[3:0]</obj_property>
+      <obj_property name="ObjectShortName">state[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/count_half" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">count_half</obj_property>
+      <obj_property name="ObjectShortName">count_half</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb2/adc/count_end" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">count_end</obj_property>
+      <obj_property name="ObjectShortName">count_end</obj_property>
    </wvobject>
    <wvobject fp_name="/tb2/adc/max_seen" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">max_seen[7:0]</obj_property>
@@ -60,12 +93,8 @@
       <obj_property name="ElementShortName">min_seen[7:0]</obj_property>
       <obj_property name="ObjectShortName">min_seen[7:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/tb2/adc/val" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">val[7:0]</obj_property>
-      <obj_property name="ObjectShortName">val[7:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb2/adc/datai" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">datai[7:0]</obj_property>
-      <obj_property name="ObjectShortName">datai[7:0]</obj_property>
+   <wvobject fp_name="/tb2/adc/datao" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">datao[7:0]</obj_property>
+      <obj_property name="ObjectShortName">datao[7:0]</obj_property>
    </wvobject>
 </wave_config>
