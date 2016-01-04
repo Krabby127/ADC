@@ -106,10 +106,10 @@ begin
             -- count_half means we're in the middle of a state
             -- good time to transmit data
             if count_half='1' then
-                if state="1100" and bit_cnt="0010010" then
-                    -- NAK from state 0d12 0hC
+                if state="1100" and bit_cnt="0011010" then
+                    -- NAK from state 0d12 0hC 0011010
                     sdao_i<='1'; --NAK
-                elsif bit_cnt="1011010" then
+                elsif bit_cnt="0011010" then
                     sdao_i<=sdao_i; --NAK
                 elsif state(2 downto 0)="000" then
                     sdao_i<='1'; -- NAK
@@ -134,20 +134,20 @@ begin
                 -- bit_cnt is 8 or 17 or if done with init with bit_cnt at 0x1A 0d26
                 -- after 1 packet or 3 packets in case of init
                 -- just finished address byte
-                if bit_cnt="0001000" or bit_cnt="0010001" or (state(3)='0' and bit_cnt="0011010") then
+                if bit_cnt="0001000" then
                     --(state(3)='1' and bit_cnt="011011") then
                     -- waiting for slave ACK confirming address
                     sda_oe<='0';
--- packets 4,5,6,7,8,9,10
--- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
--- end of 9-bit packets
--- ony if in active reading/writing (state b/c)
---                elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001"  and bit_cnt/="0101101" and bit_cnt/="0110110" and bit_cnt/="0111111" and bit_cnt/="1001000" and bit_cnt/="1010001" then
---                    -- Corresponding ACK after each of 8 bits
---                    sda_oe<='0';
--- bit_cnt marks number of bits that have already been transmitted
--- when bit_cnt is 8, a full byte has already been processed
-                elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001"  and bit_cnt/="0101101" and bit_cnt/="0110110" and bit_cnt/="0111111" and bit_cnt/="1001000" and bit_cnt/="1010001" then
+                -- packets 4,5,6,7,8,9,10
+                -- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
+                -- end of 9-bit packets
+                -- ony if in active reading/writing (state b/c)
+                --                elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001"  and bit_cnt/="0101101" and bit_cnt/="0110110" and bit_cnt/="0111111" and bit_cnt/="1001000" and bit_cnt/="1010001" then
+                --                    -- Corresponding ACK after each of 8 bits
+                --                    sda_oe<='0';
+                -- bit_cnt marks number of bits that have already been transmitted
+                -- when bit_cnt is 8, a full byte has already been processed
+                elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001" and bit_cnt/="0011010" then
                     -- Allows for slave to drive SDA and ACK
                     sda_oe<='0';
                 else
@@ -202,9 +202,9 @@ begin
                     -- after reading 27 bits in state c,
                     -- go to state d
                     -- change to reading 27 bits for ADC
-                    if bit_cnt="1011010" then
+                    if bit_cnt="0011010" then
                         state <= "1101";
-                    --                        diff<=('0'&max_seen)-('0'&min_seen);
+                    -- diff<=('0'&max_seen)-('0'&min_seen);
                     else
                         -- otherwise, go back to reading in state b
                         state <= "1011";
@@ -235,15 +235,15 @@ begin
         -- ^ Reading the data ^
         end if;
         -- before writes, in state 1 or 9
---      if state(2 downto 0)="001" then
---          -- Slave address check
---          datao<="10100010"; --chip address, write
---      elsif state="0100" and count_half='1' and bit_cnt="0001001" then
---          datao<="00000100"; -- writing to reg 0
---                             -- maintain consistency with previous code; shouldn't do anything though
---                             -- register is read only
---      elsif state="0100" and count_half='1' and bit_cnt="0010010" then
---          datao<="00000000";
+        --      if state(2 downto 0)="001" then
+        --          -- Slave address check
+        --          datao<="10100010"; --chip address, write
+        --      elsif state="0100" and count_half='1' and bit_cnt="0001001" then
+        --          datao<="00000100"; -- writing to reg 0
+        --                             -- maintain consistency with previous code; shouldn't do anything though
+        --                             -- register is read only
+        --      elsif state="0100" and count_half='1' and bit_cnt="0010010" then
+        --          datao<="00000000";
         if state="1100" and count_half='1' and bit_cnt="0010011" then
             -- Slave address check
             datao<="10100011"; -- chip address, read
