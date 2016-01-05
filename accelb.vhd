@@ -4,18 +4,10 @@
 -- Function    : 2wire i/f for accelerometer
 -- Author      : J Rigg
 -------------------------------------------------------
--- Standard libraries
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.std_logic_unsigned.all;
 
--- Create initial entity
--- Arrays
---      st (8-bit)
--- 	    xdirection (12-bit)
--- 	    ydirection (12-bit)
---      zdirection (12-bit)
--- bump indicates module has been "bumped"
 entity accelb is
     port (
              reset       :in  std_logic;
@@ -34,8 +26,6 @@ entity accelb is
 end entity;
 
 
--- count_half marks halfway point of reading register
--- prepare system for data dump?
 architecture rtl of accelb is
 
 signal datao     :std_logic_vector (7 downto 0);
@@ -82,7 +72,6 @@ begin
     bit_cnt <= "0000000";
     init_cnt <= "000";
     sda_oe<='0';
-    -- Merely maintaining a large 8 bit counter
   elsif clk'event and clk='1' then
     count <= count+'1';
     if count="0111110" then
@@ -95,7 +84,6 @@ begin
     else
       count_end<='0';
     end if;
--- Increment to next state
     if state="0101" and count_end='1' then
       if init_cnt="110" then
         init_cnt<="000";
@@ -103,14 +91,11 @@ begin
         init_cnt<=init_cnt+'1';
       end if;
     end if;
--- Reset bit_cnt
     if state(1 downto 0)="01" then
       bit_cnt<="0000000";
--- Increment bit_cnt
     elsif state(1 downto 0)="11" and count_end='1' then
       bit_cnt<=bit_cnt+'1';
     end if;
--- Possibly reading one bit at a time?
     if count_half='1' then
       if state="1100" and bit_cnt="1011010" then
         sdao_i<='1'; --NAK
@@ -155,7 +140,6 @@ begin
     if reset = '1' then
         state <= (others=>'0');
   elsif clk'event and clk='1' then
-    -- count_end occurs when 8-bit register is full
     if count_end='1' then
       if state(3 downto 2)= "00" then
         state <= state+'1';
@@ -211,33 +195,32 @@ end process;
 
 dio_proc: process
 begin
-  wait until clk'event and clk='1';
-  if state="1011" and count_half='1' then
-    datai<=datai(6 downto 0) & sdai;
-  end if;
-  if state(2 downto 0)="001" then
-    datao<="00111000"; --chip address, write
-  elsif state="0100" and count_half='1' and bit_cnt="0001001" then
-    datao<=amux; --write to reg 2A
-  elsif state="0100" and count_half='1' and bit_cnt="0010010" then
-    datao<=dmux; -- with data 05 - low noise, normal read, enable
-  --elsif state="1100" and count_half='1' and bit_cnt="001001" then
-  --  datao<="00000000";
-  elsif state="1100" and count_half='1' and bit_cnt="0010011" then
-    datao<="00111001"; -- chip address, read
-  elsif state(2 downto 0)="011" and count_half='1' then
-    datao<=datao(6 downto 0) & '0';
-  end if;
-  if reset='1' or clrb='1' then
-    upd_cnt <= (others=>'0');
-  elsif state="1000" and count_end='1' and upd_i='0' then
-    upd_cnt<=upd_cnt+'1';
-  end if;
-  if upd_cnt="11111111111" and count_end='1' then
-    upd_i <= '1';
-  elsif count_end='1' then
-    upd_i <= '0';
-  end if;
+    wait until clk'event and clk='1';
+    if state="1011" and count_half='1' then
+        datai<=datai(6 downto 0) & sdai;
+    end if;
+    if state(2 downto 0)="001" then
+        datao<="00111000"; --chip address, write
+    elsif state="0100" and count_half='1' and bit_cnt="0001001" then
+        datao<=amux;
+    elsif state="0100" and count_half='1' and bit_cnt="0010010" then
+        datao<=dmux;
+    --elsif state="1100" and count_half='1' and bit_cnt="001001" then
+    elsif state="1100" and count_half='1' and bit_cnt="0010011" then
+        datao<="00111001"; -- chip address, read
+    elsif state(2 downto 0)="011" and count_half='1' then
+        datao<=datao(6 downto 0) & '0';
+    end if;
+    if reset='1' or clrb='1' then
+        upd_cnt <= (others=>'0');
+    elsif state="1000" and count_end='1' and upd_i='0' then
+        upd_cnt<=upd_cnt+'1';
+    end if;
+    if upd_cnt="11111111111" and count_end='1' then
+        upd_i <= '1';
+    elsif count_end='1' then
+        upd_i <= '0';
+    end if;
 end process;
 
 bx<=('0'&lastx)-('0'&xdi);
@@ -254,30 +237,24 @@ begin
   if state="1011" and bit_cnt="0100011" and count_end='1' then
     st <= datai;
   end if;
-  -- 9 bits later
   if state="1011" and bit_cnt="0101100" and count_end='1' then
     xdi(11 downto 4) <= datai;
     lastx<=xdi;
   end if;
-  -- 9 bits later
   if state="1011" and bit_cnt="0110101" and count_end='1' then
     xdi(3 downto 0) <= datai(7 downto 4);
   end if;
-  -- 9 bits later
   if state="1011" and bit_cnt="0111110" and count_end='1' then
     ydi(11 downto 4) <= datai;
     lasty<=ydi;
   end if;
-  -- 9 bits later
   if state="1011" and bit_cnt="1000111" and count_end='1' then
     ydi(3 downto 0) <= datai(7 downto 4);
   end if;
-  -- 9 bits later
   if state="1011" and bit_cnt="1010000" and count_end='1' then
     zdi(11 downto 4) <= datai;
     lastz<=zdi;
   end if;
-  -- 9 bits later
   if state="1011" and bit_cnt="1011001" and count_end='1' then
     zdi(3 downto 0) <= datai(7 downto 4);
   end if;
