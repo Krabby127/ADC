@@ -1,0 +1,29 @@
+Command line:
+   adclb_isim_beh.exe
+     -simmode  gui
+     -simrunnum  1
+     -socket  50005
+
+Tue Jan  5 12:12:11 2016
+
+
+ Elaboration Time: 0.11 sec
+
+ Current Memory Usage: 195.85 Meg
+
+ Total Signals          : 29
+ Total Nets             : 134
+ Total Signal Drivers   : 23
+ Total Blocks           : 4
+ Total Primitive Blocks : 4
+ Total Processes        : 9
+ Total Traceable Variables  : 10
+ Total Scalar Nets and Variables : 512
+Total Line Count : 98
+
+ Total Simulation Time: 0.11 sec
+
+ Current Memory Usage: 271.352 Meg
+
+Tue Jan  5 12:12:23 2016
+
