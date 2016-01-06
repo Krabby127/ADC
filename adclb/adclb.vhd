@@ -7,7 +7,10 @@
 -- Standard libraries
 library ieee;
 use ieee.std_logic_1164.all;
+--use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+
 
 entity adclb is
     port (
@@ -18,6 +21,8 @@ entity adclb is
              sdai        :in  std_logic; -- data in
              sdao        :out std_logic; -- data out
              sda_oe      :out std_logic; -- master control of sda line
+             min_flag   :out std_logic; -- whether the threshold has been met
+             max_flag   :out std_logic; -- whether the threshold has been met
              diff_flag   :out std_logic; -- whether the threshold has been met
              max         :out std_logic_vector (7 downto 0); -- max value read from ADC
              min         :out std_logic_vector (7 downto 0); -- min value read from ADC
@@ -41,16 +46,25 @@ architecture rtl of adclb is
     signal init_cnt  :std_logic_vector (2 downto 0); -- initialization counter
     signal state     :std_logic_vector (3 downto 0); -- the current state we're in
     signal upd_cnt   :std_logic_vector (10 downto 0); -- uptime counter
+    signal max_i    :std_logic; -- internal max flag
+    signal min_i    :std_logic; -- internal min flag
     signal diff_i    :std_logic; -- internal difference flag
     signal count_half:std_logic; -- midway state counter
     signal count_end :std_logic; -- state counter
     signal sdao_i    :std_logic; -- internal data out
     signal upd_i     :std_logic; -- internal uptime counter finish flag
+                                 -- VAR = NUM * (2500/(10000+2500)) /3.3 * 255
+    constant MAX_THRESHOLD :integer := 185; -- 12.2 V
+    constant MIN_THRESHOLD :integer := 182; -- 11.7 V
+    constant DIFF_THRESHOLD :integer := 8; -- 0.5 V difference
 begin
 
+    --	constant MAX_ALARM_VAR : unsigned (7 downto 0) := 12.2*(2500/(2500+10000));
     sdao<=sdao_i;
     max<=max_seen;
     min<=min_seen;
+    max_flag<=max_i;
+    min_flag<=min_i;
     diff_flag<=diff_i;
     value<=val;
 
@@ -210,12 +224,6 @@ begin
                         state <= "1011";
                     end if;
                 elsif state = "1101" then
-                    --                    if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
-                    --                        diff_i<='1';
-                    --                    else
-                    --                        assert diff<="000010000";
-                    --                        diff_i<='0';
-                    --                    end if;
                     -- go from d to 8
                     -- not done reading yet
                     state <= "1000";
@@ -235,15 +243,6 @@ begin
         -- ^ Reading the data ^
         end if;
         -- before writes, in state 1 or 9
-        --      if state(2 downto 0)="001" then
-        --          -- Slave address check
-        --          datao<="10100010"; --chip address, write
-        --      elsif state="0100" and count_half='1' and bit_cnt="0001001" then
-        --          datao<="00000100"; -- writing to reg 0
-        --                             -- maintain consistency with previous code; shouldn't do anything though
-        --                             -- register is read only
-        --      elsif state="0100" and count_half='1' and bit_cnt="0010010" then
-        --          datao<="00000000";
         if state="1001" and count_half='1' then
             -- Slave address check
             datao<="10100011"; -- chip address, read
@@ -277,6 +276,8 @@ begin
         -- state b, bit_cnt 0d35
         if reset='1' or clrb='1' then
             diff_i<='0';
+            max_i<='0';
+            min_i<='0';
             diff<="000000000";
             max_seen<="00000000";
             min_seen<="11111111";
@@ -296,7 +297,7 @@ begin
             else
                 max_seen<="00000000";
             end if;
-            -- max_seen<="00010000";
+            --             max_seen<="11111110";
             if (val<min_seen) then
                 min_seen<=val;
             elsif (val>=min_seen) then
@@ -306,19 +307,31 @@ begin
             end if;
         end if;
         -- bit_cnt=62 (0x3E)
-        if state="1011" and bit_cnt="0111110" and count_end='1' then
+        if state="1000" and count_end='1' then
             diff<=('0'&max_seen)-('0'&min_seen);
         -- diff<="000001000";
         else
             diff<=diff;
         end if;
-        if state="1011" and bit_cnt="1000111" then
-            if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
+        if state="1000" then
+            if diff>DIFF_THRESHOLD and (diff(8)/='1') then
                 diff_i<='1';
             else
-                assert diff<="000010000";
                 diff_i<='0';
             end if;
+
+            if max_seen>MAX_THRESHOLD then
+                max_i<='1';
+            else
+                max_i<='0';
+            end if;
+
+            if min_seen<MIN_THRESHOLD then
+                min_i<='1';
+            else
+                min_i<='0';
+            end if;
+
         end if;
 
     end process;
