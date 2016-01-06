@@ -244,7 +244,7 @@ begin
         --                             -- register is read only
         --      elsif state="0100" and count_half='1' and bit_cnt="0010010" then
         --          datao<="00000000";
-        if state="1100" and count_half='1' and bit_cnt="0010011" then
+        if state="1001" and count_half='1' then
             -- Slave address check
             datao<="10100011"; -- chip address, read
                                -- read from states b or 3 every count_half
