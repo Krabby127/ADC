@@ -1,13 +1,12 @@
 -------------------------------------------------------
 -- Design Name : adclb
 -- File Name   : adclb.vhd
--- Function    : 2wire i/f for ADC
+-- Function    : I2C ADC w/ alarms
 -- Author      : Michael Eller
 -------------------------------------------------------
 -- Standard libraries
 library ieee;
 use ieee.std_logic_1164.all;
---use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
@@ -21,8 +20,8 @@ entity adclb is
              sdai        :in  std_logic; -- data in
              sdao        :out std_logic; -- data out
              sda_oe      :out std_logic; -- master control of sda line
-             min_flag   :out std_logic; -- whether the threshold has been met
-             max_flag   :out std_logic; -- whether the threshold has been met
+             min_flag    :out std_logic; -- whether the threshold has been met
+             max_flag    :out std_logic; -- whether the threshold has been met
              diff_flag   :out std_logic; -- whether the threshold has been met
              max         :out std_logic_vector (7 downto 0); -- max value read from ADC
              min         :out std_logic_vector (7 downto 0); -- min value read from ADC
@@ -40,23 +39,23 @@ architecture rtl of adclb is
     signal max_seen  :std_logic_vector (7 downto 0); -- maximum value seen so far
     signal min_seen  :std_logic_vector (7 downto 0); -- minimum value seen so far
     signal val       :std_logic_vector (7 downto 0); -- internal signal for value read
-    signal diff    	:std_logic_vector (8 downto 0); -- difference between min and max
+    signal diff    	 :std_logic_vector (8 downto 0); -- difference between min and max
     signal count     :std_logic_vector (6 downto 0); -- clock counter
     signal bit_cnt   :std_logic_vector (6 downto 0); -- bit counter
     signal init_cnt  :std_logic_vector (2 downto 0); -- initialization counter
     signal state     :std_logic_vector (3 downto 0); -- the current state we're in
     signal upd_cnt   :std_logic_vector (10 downto 0); -- uptime counter
-    signal max_i    :std_logic; -- internal max flag
-    signal min_i    :std_logic; -- internal min flag
+    signal max_i     :std_logic; -- internal max flag
+    signal min_i     :std_logic; -- internal min flag
     signal diff_i    :std_logic; -- internal difference flag
     signal count_half:std_logic; -- midway state counter
     signal count_end :std_logic; -- state counter
     signal sdao_i    :std_logic; -- internal data out
     signal upd_i     :std_logic; -- internal uptime counter finish flag
-                                 -- VAR = NUM * (2500/(10000+2500)) /3.3 * 255
-    constant MAX_THRESHOLD :integer := 185; -- 12.2 V
-    constant MIN_THRESHOLD :integer := 182; -- 11.7 V
-    constant DIFF_THRESHOLD :integer := 8; -- 0.5 V difference
+                                 -- VAR = NUM * (2500/(10000+2500)) / 3.3 * 255
+    constant MAX_THRESHOLD :integer := 188; -- 12.16 V
+    constant MIN_THRESHOLD :integer := 181; -- 11.71 V
+    constant DIFF_THRESHOLD :integer := 7; -- 0.45 V difference
 begin
 
     --	constant MAX_ALARM_VAR : unsigned (7 downto 0) := 12.2*(2500/(2500+10000));
