@@ -35,7 +35,7 @@ architecture rtl of adclb is
     signal max_seen  :std_logic_vector (7 downto 0); -- maximum value seen so far
     signal min_seen  :std_logic_vector (7 downto 0); -- minimum value seen so far
     signal val       :std_logic_vector (7 downto 0); -- internal signal for value read
-    signal diff    	:std_logic_vector (8 downto 0); -- difference between min and max
+    signal diff      :std_logic_vector (8 downto 0); -- difference between min and max
     signal count     :std_logic_vector (6 downto 0); -- clock counter
     signal bit_cnt   :std_logic_vector (6 downto 0); -- bit counter
     signal init_cnt  :std_logic_vector (2 downto 0); -- initialization counter
@@ -210,12 +210,6 @@ begin
                         state <= "1011";
                     end if;
                 elsif state = "1101" then
-                    --                    if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
-                    --                        diff_i<='1';
-                    --                    else
-                    --                        assert diff<="000010000";
-                    --                        diff_i<='0';
-                    --                    end if;
                     -- go from d to 8
                     -- not done reading yet
                     state <= "1000";
@@ -235,15 +229,6 @@ begin
         -- ^ Reading the data ^
         end if;
         -- before writes, in state 1 or 9
-        --      if state(2 downto 0)="001" then
-        --          -- Slave address check
-        --          datao<="10100010"; --chip address, write
-        --      elsif state="0100" and count_half='1' and bit_cnt="0001001" then
-        --          datao<="00000100"; -- writing to reg 0
-        --                             -- maintain consistency with previous code; shouldn't do anything though
-        --                             -- register is read only
-        --      elsif state="0100" and count_half='1' and bit_cnt="0010010" then
-        --          datao<="00000000";
         if state="1001" and count_half='1' then
             -- Slave address check
             datao<="10100011"; -- chip address, read
@@ -270,58 +255,59 @@ begin
     -- '0'&#### forces unsigned math
     --    diff<=('0'&max_seen)-('0'&min_seen);
 
-    reg_proc: process
+    reg_proc: process(clk, reset)
     begin
-        -- all the reading is done in state b
-        wait until clk'event and clk='1';
-        -- state b, bit_cnt 0d35
         if reset='1' or clrb='1' then
             diff_i<='0';
             diff<="000000000";
             max_seen<="00000000";
             min_seen<="11111111";
             val<="00000000";
-        end if;if state="1011" and bit_cnt="0001001" and count_end='1' then
-            val(7 downto 4) <= datai(3 downto 0);
-        end if;
-        -- state b, bit_cnt 0d44
-        if state="1011" and bit_cnt="0010001" and count_end='1' then
-            val(3 downto 0) <= datai(7 downto 4);
-        end if;
-        if state="1101" and count_end='1' then
-            if (val>max_seen) then
-                max_seen<=val;
-            elsif (val<=max_seen) then
-                max_seen<=max_seen;
-            else
-                max_seen<="00000000";
+        elsif clk'event and clk='1' then
+            -- wait until clk'event and clk='1';
+            -- state b, bit_cnt 0d35
             end if;
-            -- max_seen<="00010000";
-            if (val<min_seen) then
-                min_seen<=val;
-            elsif (val>=min_seen) then
-                min_seen<=min_seen;
-            else
-                min_seen<="11111111";
+            if state="1011" and bit_cnt="0010000" and count_end='1' then
+                val(7 downto 4) <= datai(3 downto 0);
             end if;
-        end if;
-        -- bit_cnt=62 (0x3E)
-        if state="1011" and bit_cnt="0111110" and count_end='1' then
-            diff<=('0'&max_seen)-('0'&min_seen);
-        -- diff<="000001000";
-        else
-            diff<=diff;
-        end if;
-        if state="1011" and bit_cnt="1000111" then
-            if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
-                diff_i<='1';
-            else
-                assert diff<="000010000";
-                diff_i<='0';
+            -- state b, bit_cnt 0d44
+            if state="1011" and bit_cnt="0011001" and count_end='1' then
+                val(3 downto 0) <= datai(7 downto 4);
             end if;
-        end if;
+            if state="1101" and count_end='1' then
+                if (val>max_seen) then
+                    max_seen<=val;
+                elsif (val<=max_seen) then
+                    max_seen<=max_seen;
+                else
+                    max_seen<="00000000";
+                end if;
+                -- max_seen<="00010000";
+                if (val<min_seen) then
+                    min_seen<=val;
+                elsif (val>=min_seen) then
+                    min_seen<=min_seen;
+                else
+                    min_seen<="11111111";
+                end if;
+            end if;
+            -- bit_cnt=62 (0x3E)
+            if state="1000" and count_end='1' then
+                diff<=('0'&max_seen)-('0'&min_seen);
+            -- diff<="000001000";
+            else
+                diff<=diff;
+            end if;
+            if state="1001" then
+                if diff>"000001000" then -- some arbitrary number right now; padded with 0 for sign:
+                    diff_i<='1';
+                else
+                    assert diff<="000010000";
+                    diff_i<='0';
+                end if;
+            end if;
 
-    end process;
+        end process;
 
 end architecture;
 
