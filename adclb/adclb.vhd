@@ -275,25 +275,31 @@ begin
         -- all the reading is done in state b
         wait until clk'event and clk='1';
         -- state b, bit_cnt 0d35
-        if state="1011" and bit_cnt="0100011" and count_end='1' then
+        if reset='1' or clrb='1' then
+            diff_i<='0';
+            diff<="000000000";
+            max_seen<="00000000";
+            min_seen<="11111111";
+            val<="00000000";
+        end if;if state="1011" and bit_cnt="0001001" and count_end='1' then
             val(7 downto 4) <= datai(3 downto 0);
         end if;
         -- state b, bit_cnt 0d44
-        if state="1011" and bit_cnt="0101100" and count_end='1' then
+        if state="1011" and bit_cnt="0010001" and count_end='1' then
             val(3 downto 0) <= datai(7 downto 4);
         end if;
-        if state="1011" and bit_cnt="0110101" and count_end='1' then
-            --            if val>max_seen then
-            --                max_seen<=val;
-            --            elsif val<=max_seen then
-            --                max_seen<=max_seen;
-            --            else
-            --                max_seen<="00000000";
-            --            end if;
-            max_seen<="00010000";
+        if state="1101" and count_end='1' then
+            if (val>max_seen) then
+                max_seen<=val;
+            elsif (val<=max_seen) then
+                max_seen<=max_seen;
+            else
+                max_seen<="00000000";
+            end if;
+            -- max_seen<="00010000";
             if (val<min_seen) then
                 min_seen<=val;
-            elsif val>=min_seen then
+            elsif (val>=min_seen) then
                 min_seen<=min_seen;
             else
                 min_seen<="11111111";
@@ -314,13 +320,7 @@ begin
                 diff_i<='0';
             end if;
         end if;
-        if reset='1' or clrb='1' then
-            diff_i<='0';
-            diff<="000000000";
-            max_seen<="00000000";
-            min_seen<="11111111";
-            val<="00000000";
-        end if;
+
     end process;
 
 end architecture;
