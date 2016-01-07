@@ -139,7 +139,7 @@ begin
                 end if;
             end if;
 
-            -- count_helf marks state change
+            -- count_half marks state change
             if count_half='1' then
                 -- bit_cnt is 8 or 17 or if done with init with bit_cnt at 0x1A 0d26
                 -- after 1 packet or 3 packets in case of init
