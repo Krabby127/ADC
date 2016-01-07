@@ -53,11 +53,13 @@ architecture rtl of adclb is
     signal sdao_i    :std_logic; -- internal data out
     signal upd_i     :std_logic; -- internal uptime counter finish flag
                                  -- VAR = NUM * (2550Ω/(10000Ω+2550Ω)) / 3.3V * 255
+                                 -- actual read value seems to be
+                                 -- 50-60 mv high in signle test case
     constant MAX_THRESHOLD  :integer := 192; -- 12.23 V 0xC0
     constant MIN_THRESHOLD  :integer := 184; -- 11.72 V 0xB4
     constant DIFF_THRESHOLD :integer := 4;   -- 0.25 V difference
 begin
-
+    
     sdao<=sdao_i;
     max<=max_seen;
     min<=min_seen;
@@ -148,10 +150,10 @@ begin
                     --(state(3)='1' and bit_cnt="011011") then
                     -- waiting for slave ACK confirming address
                     sda_oe<='0';
-                        -- packets 4,5,6,7,8,9,10
-                        -- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
-                        -- end of 9-bit packets
-                        -- ony if in active reading/writing (state b/c)
+                    -- packets 4,5,6,7,8,9,10
+                    -- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
+                    -- end of 9-bit packets
+                    -- ony if in active reading/writing (state b/c)
                     sda_oe<='0';
                 -- bit_cnt marks number of bits that have already been transmitted
                 -- when bit_cnt is 8, a full byte has already been processed
