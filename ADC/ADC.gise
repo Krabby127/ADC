@@ -56,6 +56,10 @@
     <transform xil_pn:end_ts="1452113076" xil_pn:in_ck="7221957548363701359" xil_pn:name="TRAN_copyAbstractToPostAbstractSimulation" xil_pn:start_ts="1452113076">
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForInputs"/>
+      <status xil_pn:value="OutOfDateForOutputs"/>
+      <status xil_pn:value="InputChanged"/>
+      <status xil_pn:value="OutputChanged"/>
       <outfile xil_pn:name="../adclb/adclb.vhd"/>
       <outfile xil_pn:name="../adclb/tb.vhd"/>
       <outfile xil_pn:name="../scratch.vhd"/>

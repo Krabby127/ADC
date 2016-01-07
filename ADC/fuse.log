@@ -8,7 +8,7 @@ Parsing VHDL file "/home/laura/ADC/ADC/../scratch.vhd" into library work
 Starting static elaboration
 Completed static elaboration
 Fuse Memory Usage: 98396 KB
-Fuse CPU Usage: 2190 ms
+Fuse CPU Usage: 2290 ms
 Compiling package standard
 Compiling package std_logic_1164
 Compiling package numeric_std
@@ -19,8 +19,9 @@ Compiling package std_logic_unsigned
 Compiling architecture rtl of entity adclb [adclb_default]
 Compiling architecture behav2 of entity tb2
 Time Resolution for simulation is 1ps.
+Waiting for 1 sub-compilation(s) to finish...
 Compiled 10 VHDL Units
 Built simulation executable /home/laura/ADC/ADC/tb2_isim_beh.exe
 Fuse Memory Usage: 416496 KB
-Fuse CPU Usage: 2390 ms
-GCC CPU Usage: 480 ms
+Fuse CPU Usage: 2520 ms
+GCC CPU Usage: 770 ms
