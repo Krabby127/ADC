@@ -55,10 +55,9 @@ architecture rtl of adclb is
                                  -- VAR = NUM * (2500/(10000+2500)) / 3.3 * 255
     constant MAX_THRESHOLD  :integer := 188; -- 12.49 V 0xBC
     constant MIN_THRESHOLD  :integer := 180; -- 11.51 V 0xB4
-    constant DIFF_THRESHOLD :integer := 4; -- 0.26 V difference
+    constant DIFF_THRESHOLD :integer := 4;   -- 0.26 V difference
 begin
 
-    --	constant MAX_ALARM_VAR : unsigned (7 downto 0) := 12.2*(2500/(2500+10000));
     sdao<=sdao_i;
     max<=max_seen;
     min<=min_seen;
@@ -149,11 +148,11 @@ begin
                     --(state(3)='1' and bit_cnt="011011") then
                     -- waiting for slave ACK confirming address
                     sda_oe<='0';
-                -- packets 4,5,6,7,8,9,10
-                -- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
-                -- end of 9-bit packets
-                -- ony if in active reading/writing (state b/c)
-                        sda_oe<='0';
+                        -- packets 4,5,6,7,8,9,10
+                        -- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
+                        -- end of 9-bit packets
+                        -- ony if in active reading/writing (state b/c)
+                    sda_oe<='0';
                 -- bit_cnt marks number of bits that have already been transmitted
                 -- when bit_cnt is 8, a full byte has already been processed
                 elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001" and bit_cnt/="0011010" then
