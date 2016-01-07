@@ -212,7 +212,6 @@ begin
                     -- change to reading 27 bits for ADC
                     if bit_cnt="0011010" then
                         state <= "1101";
-                    -- diff<=('0'&max_seen)-('0'&min_seen);
                     else
                         -- otherwise, go back to reading in state b
                         state <= "1011";
@@ -260,8 +259,6 @@ begin
         end if;
     end process;
 
-    -- '0'&#### forces unsigned math
-    --    diff<=('0'&max_seen)-('0'&min_seen);
 
     reg_proc: process
     begin
@@ -305,7 +302,7 @@ begin
         -- bit_cnt=62 (0x3E)
         if state="1000" and count_end='1' then
             diff<=('0'&max_seen)-('0'&min_seen);
-        -- diff<="000001000";
+        -- '0'&#### forces unsigned math
         else
             diff<=diff;
         end if;
