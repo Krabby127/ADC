@@ -39,7 +39,7 @@ architecture rtl of adclb is
     signal max_seen  :std_logic_vector (7 downto 0); -- maximum value seen so far
     signal min_seen  :std_logic_vector (7 downto 0); -- minimum value seen so far
     signal val       :std_logic_vector (7 downto 0); -- internal signal for value read
-    signal diff    	:std_logic_vector (8 downto 0); -- difference between min and max
+    signal diff    	 :std_logic_vector (8 downto 0); -- difference between min and max
     signal count     :std_logic_vector (6 downto 0); -- clock counter
     signal bit_cnt   :std_logic_vector (6 downto 0); -- bit counter
     signal init_cnt  :std_logic_vector (2 downto 0); -- initialization counter
@@ -53,9 +53,9 @@ architecture rtl of adclb is
     signal sdao_i    :std_logic; -- internal data out
     signal upd_i     :std_logic; -- internal uptime counter finish flag
                                  -- VAR = NUM * (2500/(10000+2500)) / 3.3 * 255
-    constant MAX_THRESHOLD  :integer := 193; -- 12.49 V
-    constant MIN_THRESHOLD  :integer := 178; -- 11.51 V
-    constant DIFF_THRESHOLD :integer := 3; -- 0.45 V difference
+    constant MAX_THRESHOLD  :integer := 188; -- 12.49 V 0xBC
+    constant MIN_THRESHOLD  :integer := 180; -- 11.51 V 0xB4
+    constant DIFF_THRESHOLD :integer := 4; -- 0.26 V difference
 begin
 
     --	constant MAX_ALARM_VAR : unsigned (7 downto 0) := 12.2*(2500/(2500+10000));
@@ -153,9 +153,7 @@ begin
                 -- bit_cnt > 8, /= 17 (redundancy from above), /=45, /=54, /=63, /=72, /=81
                 -- end of 9-bit packets
                 -- ony if in active reading/writing (state b/c)
-                --                elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001"  and bit_cnt/="0101101" and bit_cnt/="0110110" and bit_cnt/="0111111" and bit_cnt/="1001000" and bit_cnt/="1010001" then
-                --                    -- Corresponding ACK after each of 8 bits
-                --                    sda_oe<='0';
+                        sda_oe<='0';
                 -- bit_cnt marks number of bits that have already been transmitted
                 -- when bit_cnt is 8, a full byte has already been processed
                 elsif state(3)='1' and bit_cnt>"0001000" and bit_cnt/="0010001" and bit_cnt/="0011010" then
@@ -279,11 +277,13 @@ begin
             max_seen<="00000000";
             min_seen<="11111111";
             val<="00000000";
-        end if;if state="1011" and bit_cnt="0001001" and count_end='1' then
+        end if;
+        -- shift first 4 after 16 bits
+        if state="1011" and bit_cnt="0010000" and count_end='1' then
             val(7 downto 4) <= datai(3 downto 0);
         end if;
-        -- state b, bit_cnt 0d44
-        if state="1011" and bit_cnt="0010001" and count_end='1' then
+        -- shift last 4 after 24 bits
+        if state="1011" and bit_cnt="0011000" and count_end='1' then
             val(3 downto 0) <= datai(7 downto 4);
         end if;
         if state="1101" and count_end='1' then
