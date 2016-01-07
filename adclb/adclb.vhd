@@ -52,10 +52,10 @@ architecture rtl of adclb is
     signal count_end :std_logic; -- state counter
     signal sdao_i    :std_logic; -- internal data out
     signal upd_i     :std_logic; -- internal uptime counter finish flag
-                                 -- VAR = NUM * (2500Ω/(10000Ω+2500Ω)) / 3.3V * 255
-    constant MAX_THRESHOLD  :integer := 188; -- 12.49 V 0xBC
-    constant MIN_THRESHOLD  :integer := 180; -- 11.51 V 0xB4
-    constant DIFF_THRESHOLD :integer := 4;   -- 0.26 V difference
+                                 -- VAR = NUM * (2550Ω/(10000Ω+2550Ω)) / 3.3V * 255
+    constant MAX_THRESHOLD  :integer := 192; -- 12.23 V 0xC0
+    constant MIN_THRESHOLD  :integer := 184; -- 11.72 V 0xB4
+    constant DIFF_THRESHOLD :integer := 4;   -- 0.25 V difference
 begin
 
     sdao<=sdao_i;
