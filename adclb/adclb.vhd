@@ -59,7 +59,7 @@ architecture rtl of adclb is
     constant MIN_THRESHOLD  :integer := 184; -- 11.72 V 0xB4
     constant DIFF_THRESHOLD :integer := 4;   -- 0.25 V difference
 begin
-    
+
     sdao<=sdao_i;
     max<=max_seen;
     min<=min_seen;
@@ -262,12 +262,11 @@ begin
     end process;
 
 
-    reg_proc: process
+    reg_proc: process(clk, reset)
     begin
         -- all the reading is done in state b
-        wait until clk'event and clk='1';
         -- state b, bit_cnt 0d35
-        if reset='1' or clrb='1' then
+        if reset='1' then
             diff_i<='0';
             max_i<='0';
             min_i<='0';
@@ -275,60 +274,71 @@ begin
             max_seen<="00000000";
             min_seen<="11111111";
             val<="00000000";
-        end if;
-        -- shift first 4 after 16 bits
-        if state="1011" and bit_cnt="0010000" and count_end='1' then
-            val(7 downto 4) <= datai(3 downto 0);
-        end if;
-        -- shift last 4 after 25 bits
-        if state="1011" and bit_cnt="0011001" and count_end='1' then
-            val(3 downto 0) <= datai(7 downto 4);
-        end if;
-        if state="1101" and count_end='1' then
-            if (val>max_seen) then
-                max_seen<=val;
-            elsif (val<=max_seen) then
-                max_seen<=max_seen;
-            else
-                max_seen<="00000000";
-            end if;
-            --             max_seen<="11111110";
-            if (val<min_seen) then
-                min_seen<=val;
-            elsif (val>=min_seen) then
-                min_seen<=min_seen;
-            else
-                min_seen<="11111111";
-            end if;
-        end if;
-        -- bit_cnt=62 (0x3E)
-        if state="1000" and count_end='1' then
-            diff<=('0'&max_seen)-('0'&min_seen);
-        -- '0'&#### forces unsigned math
-        else
-            diff<=diff;
-        end if;
-        if state="1000" then
-            if diff>DIFF_THRESHOLD and (diff(8)/='1') then
-                diff_i<='1';
-            else
+        elsif clk'event and clk='1' then
+            if clrb='1' then
                 diff_i<='0';
-            end if;
-
-            if max_seen>MAX_THRESHOLD then
-                max_i<='1';
-            else
                 max_i<='0';
+                min_i<='0';
+                diff<="000000000";
+                max_seen<="00000000";
+                min_seen<="11111111";
+                val<="00000000";
             end if;
 
-            if min_seen<MIN_THRESHOLD then
-                min_i<='1';
+            -- shift first 4 after 16 bits
+            if state="1011" and bit_cnt="0010000" and count_end='1' then
+                val(7 downto 4) <= datai(3 downto 0);
+            end if;
+            -- shift last 4 after 25 bits
+            if state="1011" and bit_cnt="0011001" and count_end='1' then
+                val(3 downto 0) <= datai(7 downto 4);
+            end if;
+            if state="1101" and count_end='1' then
+                if (val>max_seen) then
+                    max_seen<=val;
+                elsif (val<=max_seen) then
+                    max_seen<=max_seen;
+                else
+                    max_seen<="00000000";
+                end if;
+                --             max_seen<="11111110";
+                if (val<min_seen) then
+                    min_seen<=val;
+                elsif (val>=min_seen) then
+                    min_seen<=min_seen;
+                else
+                    min_seen<="11111111";
+                end if;
+            end if;
+            -- bit_cnt=62 (0x3E)
+            if state="1000" and count_end='1' then
+                diff<=('0'&max_seen)-('0'&min_seen);
+            -- '0'&#### forces unsigned math
             else
-                min_i<='0';
+                diff<=diff;
+            end if;
+            if state="1000" then
+                if diff>DIFF_THRESHOLD and (diff(8)/='1') then
+                    diff_i<='1';
+                else
+                    diff_i<='0';
+                end if;
+
+                if max_seen>MAX_THRESHOLD then
+                    max_i<='1';
+                else
+                    max_i<='0';
+                end if;
+
+                if min_seen<MIN_THRESHOLD then
+                    min_i<='1';
+                else
+                    min_i<='0';
+                end if;
+
             end if;
 
         end if;
-
     end process;
 
 end architecture;
