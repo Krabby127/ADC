@@ -62,9 +62,7 @@ begin
     sdao<=sdao_i;
     max<=max_seen;
     min<=min_seen;
-    max_flag<=max_i;
-    min_flag<=min_i;
-    diff_flag<=diff_i;
+    diff_flag<=diff_i or min_i or max_i;
     value<=val;
 
 
